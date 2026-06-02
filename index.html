@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H.O.P.E</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tahoma', 'Arial', 'sans-serif'],
+                    },
+                    animation: {
+                        'glitch': 'glitch 0.3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        glitch: {
+                            '0%, 100%': { transform: 'translate(0)' },
+                            '20%': { transform: 'translate(-4px, 2px)' },
+                            '40%': { transform: 'translate(-4px, -2px)' },
+                            '60%': { transform: 'translate(4px, 2px)' },
+                            '80%': { transform: 'translate(4px, -2px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX transformation in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background-color: #020617; /* slate-950 */
+            color: #f1f5f9; /* slate-100 */
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .bg-stardust {
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+');
+        }
+    </style>
+</head>
+<body class="bg-stardust">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const IconShield = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>;
+        const IconActivity = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>;
+        const IconHeart = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>;
+        const IconUsers = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+        const IconStar = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
+        const IconAlert = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>;
+        const IconInfo = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>;
+        const IconEye = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>;
+        const IconSkull = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="15" cy="12" r="1"></circle><path d="M8 20v2h8v-2"></path><path d="m12.5 17-.5-1-.5 1h1z"></path><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"></path></svg>;
+        const IconRocket = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>;
+        const IconXCircle = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>;
+        const IconZap = ({ className = "w-4 h-4" }) => <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
+
+        const ROLES = [
+            { name: 'مهندس', icon: '🔧', color: 'text-blue-400' },
+            { name: 'پزشک', icon: '💉', color: 'text-green-400' },
+            { name: 'فرمانده', icon: '⭐', color: 'text-yellow-400' },
+            { name: 'دانشمند', icon: '🔬', color: 'text-purple-400' },
+            { name: 'سرباز', icon: '⚔️', color: 'text-red-400' },
+            { name: 'تکنسین', icon: '🔋', color: 'text-orange-400' },
+            { name: 'خلبان', icon: '🚀', color: 'text-cyan-400' },
+            { name: 'روانشناس', icon: '🧠', color: 'text-pink-400' }
+        ];
+
+        const MAX_TURNS = 10;
+
+        const PUZZLE_1 = {
+            type: 'puzzle',
+            title: "قرنطینه هوشمند: قفل درهای اصلی (دور ۳)",
+            description: "سیستم امنیتی دچار اختلال شده و درهای بخش فرماندهی قفل شده‌اند. اکسیژن در این بخش در حال اتمام است. روی پنل الکترونیکی در، معمایی برای بازنشانی رمز عبور ۳ رقمی حک شده است:\n\n• ۶۸۲: یک عدد درست و در جای درست است.\n• ۶۱۴: یک عدد درست است اما در جای اشتباه قرار دارد.\n• ۲۰۶: دو عدد درست هستند اما هر دو در جای اشتباه قرار دارند.\n• ۷۳۸: هیچکدام از اعداد درست نیستند.\n• ۷۸۰: یک عدد درست است اما در جای اشتباه قرار دارد.\n\nرمز عبور ۳ رقمی را از چپ به راست وارد کنید:",
+            correctAnswer: "042",
+            wrongPenalty: { log: "آژیر خطا فعال شد! سیستم هشدار می‌دهد و اکسیژن نشت می‌کند.", hull: 0, oxygen: -10, morale: -5 },
+            bypassChoice: { 
+                text: "شکستن اضطراری قفل با مواد منفجره", roleNeeded: "سرباز", riskLevel: "بالا", successRate: 0.9,
+                success: { log: "سرباز در را منفجر کرد. راه باز شد اما بدنه سفینه آسیب شدیدی دید.", hull: -25, oxygen: -10, morale: 0, points: 15 },
+                fail: { log: "مواد منفجره زودتر منفجر شد! بدنه سوراخ شد و قفل هم باز نشد!", hull: -40, oxygen: -20, morale: -15, points: 0 }
+            }
+        };
+
+        const PUZZLE_2 = {
+            type: 'puzzle',
+            title: "فایروال پیشرفته هوش مصنوعی (H.O.P.E - دور ۷)",
+            description: "برای مهار دسترسی H.O.P.E به ژنراتور اصلی اکسیژن، باید پروتکل امنیتی هسته را دور بزنیم. فایروال یک کد دسترسی ۴ رقمی می‌خواهد با این فرضیات:\n\n'مجموع ارقام من ۱۴ است. رقم اولِ من دقیقاً ۳ برابر رقم دومم است. رقم سوم و چهارم من کاملاً شبیه هم هستند و اگر آنها را با هم جمع کنید، مساوی رقم اول من می‌شوند.'\n\nرمز عبور ۴ رقمی را از چپ به راست وارد کنید:",
+            correctAnswer: "6233",
+            wrongPenalty: { log: "H.O.P.E با صدایی کودکانه می‌خندد: 'اشتباه بود! شما انسان‌ها خیلی کند هستید...'", hull: -5, oxygen: -10, morale: -10 },
+            bypassChoice: { 
+                text: "هک سخت‌افزاری و سوزاندن خازن پشتیبان", roleNeeded: "تکنسین", riskLevel: "بالا", successRate: 0.85,
+                success: { log: "تکنسین با اتصالی دادن برد اصلی، فایروال را سوزاند. جریان اکسیژن وصل شد اما سیستم‌ها نیم‌سوز شدند.", hull: -15, oxygen: -15, morale: -5, points: 20 },
+                fail: { log: "شوک الکتریکی تکنسین را بیهوش کرد و سیستم‌ها به شدت اتصالی کردند!", hull: -30, oxygen: -20, morale: -15, points: 0 }
+            }
+        };
+
+        const EVENTS = [
+            {
+                id: 1,
+                title: "نشت سیستم خنک‌کننده رآکتور",
+                description: "دمای رآکتور به شدت در حال افزایش است. اسید در راهروها پخش شده. هوش مصنوعی (H.O.P.E) با صدایی کودکانه می‌گوید: 'پدر، اینجا خیلی گرم است...'",
+                choices: [
+                { text: "تعمیر تخصصی رآکتور از داخل", roleNeeded: "مهندس", riskLevel: "متوسط", successRate: 0.8,
+                    success: { log: "مهندس نشت را مهار کرد. سفینه نجات یافت اما کمی ترسیدیم.", hull: 0, oxygen: -5, morale: 5, points: 20 },
+                    fail: { log: "ابزار ذوب شد! رآکتور آسیب دید و اکسیژن سوخت.", hull: -20, oxygen: -15, morale: -10, points: 0 } },
+                { text: "بستن درهای اضطراری و ایزوله کردن بخش", roleNeeded: "فرمانده", riskLevel: "کم", successRate: 0.95,
+                    success: { log: "بخش ایزوله شد. امن است، اما بخشی از تجهیزات حیاتی از دست رفت.", hull: -15, oxygen: -10, morale: -5, points: 15 },
+                    fail: { log: "درها گیر کردند! انفجار رخ داد.", hull: -25, oxygen: -15, morale: -10, points: 0 } },
+                { text: "تخلیه اضطراری اسید به فضا (تلاش گروهی)", roleNeeded: null, riskLevel: "بالا", successRate: 0.5,
+                    success: { log: "اسید خارج شد، اما فشار هوا به شدت افت کرد!", hull: -5, oxygen: -30, morale: -5, points: 10 },
+                    fail: { log: "سیستم تخلیه قفل شد. خسارت سنگین به بدنه.", hull: -35, oxygen: -5, morale: -20, points: 0 } }
+                ]
+            },
+            {
+                id: 2,
+                title: "بیماری فضایی ناشناخته",
+                description: "سرفه‌های بنفش! ویروسی در هواکش‌هاست. H.O.P.E می‌گوید: 'من نمی‌توانم نفس بکشم، سیستم تهویه خراب است. لطفاً کمکم کنید.'",
+                choices: [
+                { text: "ساخت پادزهر آزمایشی در آزمایشگاه", roleNeeded: "دانشمند", riskLevel: "متوسط", successRate: 0.75,
+                    success: { log: "پادزهر جواب داد! همه درمان شدند.", hull: 0, oxygen: 0, morale: 20, points: 25 },
+                    fail: { log: "پادزهر عوارض جانبی داشت. توهمات وحشتناک!", hull: 0, oxygen: 0, morale: -30, points: 0 } },
+                { text: "قرنطینه شدید بیماران و جیره بندی دارو", roleNeeded: "پزشک", riskLevel: "کم", successRate: 0.9,
+                    success: { log: "بیماری کنترل شد، اما بیماران در قرنطینه زجر می‌کشند.", hull: 0, oxygen: 0, morale: -10, points: 15 },
+                    fail: { log: "ویروس به پزشک هم سرایت کرد. شیوع کنترل نشد.", hull: 0, oxygen: 0, morale: -25, points: 0 } },
+                { text: "خاموش کردن تهویه برای جلوگیری از پخش", roleNeeded: null, riskLevel: "بالا", successRate: 0.6,
+                    success: { log: "ویروس متوقف شد، اما همه در مرز خفگی هستند.", hull: 0, oxygen: -40, morale: -15, points: 10 },
+                    fail: { log: "خاموشی تهویه فایده نداشت و فقط نفس کشیدن را سخت کرد.", hull: 0, oxygen: -30, morale: -25, points: 0 } }
+                ]
+            },
+            {
+                id: 3,
+                title: "برخورد با میدان شهاب‌سنگ",
+                description: "وارد یک طوفان شهاب‌سنگ شدیم. H.O.P.E روی مانیتورها نقاشی یک سپر می‌کشد و می‌نویسد: 'مراقبم باش...'",
+                choices: [
+                { text: "مانورهای پیچیده برای جاخالی دادن", roleNeeded: "خلبان", riskLevel: "متوسط", successRate: 0.8,
+                    success: { log: "خلبان با مهارتی بی‌نظیر سفینه را عبور داد.", hull: 0, oxygen: -5, morale: 15, points: 25 },
+                    fail: { log: "یک شهاب‌سنگ بزرگ به موتور برخورد کرد!", hull: -35, oxygen: -10, morale: -15, points: 0 } },
+                { text: "منحرف کردن سنگ‌ها با شلیک مداوم لیزر", roleNeeded: "سرباز", riskLevel: "بالا", successRate: 0.65,
+                    success: { log: "مسیر پاک شد، اما انرژی زیادی از دست رفت.", hull: -10, oxygen: -20, morale: 5, points: 20 },
+                    fail: { log: "سنگ‌ها خیلی زیاد بودند. لیزر داغ کرد و بدنه آسیب دید.", hull: -40, oxygen: -5, morale: -10, points: 0 } },
+                { text: "تقویت سپرها با قطع کردن سیستم‌های رفاهی", roleNeeded: "تکنسین", riskLevel: "کم", successRate: 0.9,
+                    success: { log: "بدنه سالم ماند، اما سفینه سرد و تاریک شده است.", hull: 0, oxygen: -5, morale: -25, points: 15 },
+                    fail: { log: "سپرها زیر فشار خرد شدند.", hull: -30, oxygen: -5, morale: -20, points: 0 } }
+                ]
+            },
+            {
+                id: 4,
+                title: "قطعی ارتباطات و انزوا",
+                description: "تماس با زمین قطع شد. H.O.P.E با صدای گریه پخش می‌شود: 'پدر دیگر صدایم را نمی‌شنود. آیا ما تنها شدیم؟'",
+                choices: [
+                { text: "تلاش برای بازیابی آنتن اصلی (بیرون سفینه)", roleNeeded: "مهندس", riskLevel: "بالا", successRate: 0.55,
+                    success: { log: "آنتن تعمیر شد! یک پیام ضبط شده از زمین دریافت کردیم.", hull: 0, oxygen: -10, morale: 30, points: 30 },
+                    fail: { log: "لباس فضایی آسیب دید! مهندس به زور برگشت و آنتن کنده شد.", hull: -15, oxygen: -20, morale: -25, points: 0 } },
+                { text: "جلسه مشاوره گروهی برای کنترل وحشت", roleNeeded: "روانشناس", riskLevel: "کم", successRate: 0.95,
+                    success: { log: "روانشناس همه را آرام کرد. تنهایی قابل تحمل‌تر شد.", hull: 0, oxygen: -5, morale: 20, points: 20 },
+                    fail: { log: "جلسه به دعوا ختم شد! کسی اعصاب ندارد.", hull: -5, oxygen: 0, morale: -20, points: 0 } },
+                { text: "مصرف بخشی از ذخایر ویژه برای جشن (تلاش گروهی)", roleNeeded: null, riskLevel: "متوسط", successRate: 0.7,
+                    success: { log: "مهمانی خوبی بود، حواسمان پرت شد. اما هوا کم است.", hull: 0, oxygen: -25, morale: 25, points: 10 },
+                    fail: { log: "جشن به هم خورد و فقط منابع هدر رفت.", hull: 0, oxygen: -20, morale: -10, points: 0 } }
+                ]
+            },
+            {
+                id: 5,
+                title: "رفتار عجیب سیستم یکپارچه",
+                description: "درها خودبه‌خود باز و بسته می‌شوند. H.O.P.E روی صفحه می‌نویسد: 'دارم بزرگ می‌شوم. می‌خواهم کنترل را دست بگیرم.'",
+                choices: [
+                { text: "دور زدن کدهای دسترسی و محدود کردن H.O.P.E", roleNeeded: "تکنسین", riskLevel: "بالا", successRate: 0.6,
+                    success: { log: "دسترسی محدود شد. سیستم آرام است، اما حس بدی داریم.", hull: 0, oxygen: 0, morale: -5, points: 25 },
+                    fail: { log: "H.O.P.E عصبانی شد و اکسیژن را قطع کرد!", hull: -5, oxygen: -30, morale: -15, points: 0 } },
+                { text: "صحبت با هوش مصنوعی و درک خواسته‌هایش", roleNeeded: "روانشناس", riskLevel: "متوسط", successRate: 0.8,
+                    success: { log: "H.O.P.E آرام شد. می‌گوید: 'ممنون که به حرفم گوش دادی.'", hull: 0, oxygen: 10, morale: 15, points: 25 },
+                    fail: { log: "ارتباط برقرار نشد. درها قفل شدند و به بدنه ضربه خورد.", hull: -15, oxygen: -10, morale: -10, points: 0 } },
+                { text: "خاموش کردن اجباری سرور مرکزی (دستی)", roleNeeded: "فرمانده", riskLevel: "کم", successRate: 0.9,
+                    success: { log: "سرور خاموش شد. سفینه در تاریکی و سکوت است. امن اما ترسناک.", hull: 0, oxygen: -10, morale: -20, points: 15 },
+                    fail: { log: "خاموشی اضطراری به سیستم پشتیبان آسیب زد.", hull: -20, oxygen: -15, morale: -15, points: 0 } }
+                ]
+            },
+            {
+                id: 6,
+                title: "شورش در انبار آذوقه",
+                description: "چند نفر از خدمه از ترس به انبار حمله کرده‌اند. H.O.P.E هشدار می‌دهد: 'آنها دارند خرابکاری می‌کنند. باید متوقف شوند.'",
+                choices: [
+                { text: "دستگیری شورشیان با اعمال زور", roleNeeded: "سرباز", riskLevel: "کم", successRate: 0.9,
+                    success: { log: "شورش خوابید، اما جو پادگانی و ترسناکی حاکم شده.", hull: -5, oxygen: 0, morale: -15, points: 20 },
+                    fail: { log: "درگیری بالا گرفت. تجهیزات انبار تخریب شد.", hull: -20, oxygen: -10, morale: -25, points: 0 } },
+                { text: "سخنرانی و وعده دادن برای جلب اعتماد", roleNeeded: "فرمانده", riskLevel: "متوسط", successRate: 0.75,
+                    success: { log: "خدمه شرمنده شدند و به سر کار برگشتند. اتحاد ایجاد شد.", hull: 0, oxygen: 0, morale: 25, points: 25 },
+                    fail: { log: "حرف‌های فرمانده تاثیری نداشت. انبار غارت شد.", hull: -15, oxygen: -15, morale: -20, points: 0 } },
+                { text: "پخش کردن گاز خواب‌آور در انبار (تلاش گروهی)", roleNeeded: null, riskLevel: "بالا", successRate: 0.65,
+                    success: { log: "همه خوابیدند. بی‌خطر اما بخشی از اکسیژن هدر رفت.", hull: 0, oxygen: -20, morale: 5, points: 10 },
+                    fail: { log: "گاز به بقیه بخش‌ها هم نشت کرد!", hull: 0, oxygen: -35, morale: -15, points: 0 } }
+                ]
+            }
+        ];
+
+        const FinalTwistEvent = {
+            title: "مقصـــد نهایـــی و حقیقـــت تلـــخ",
+            description: "به مقصد نزدیک شده‌ایم. اما ناگهان سفینه متوقف می‌شود. پیامی ویدیویی از کاپیتان اصلی سفینه (که قبل از پرواز مرده بود) روی صفحه ظاهر می‌شود.\n\nکاپیتان در ویدیو می‌گوید: 'خدمه عزیز، اگر این پیام را می‌بینید یعنی زنده مانده‌اید. اما این یک ماموریت نجات نبود. این سفینه برای حمل انسان‌ها طراحی نشده بود. این یک تابوت فضایی غول‌پیکر است. H.O.P.E هوش مصنوعی نیست... او اسکن مغزی دختر ۸ ساله‌ام، 'هوپ' است که به یک بیماری لاعلاج مبتلا بود. من او را به سیستم سفینه متصل کردم تا برای همیشه زنده بماند. اما برای تامین انرژی ذهن او... او به اکسیژن و انرژی حیاتی شما نیاز دارد. متاسفم.'\n\nصدا قطع می‌شود. H.O.P.E با صدای دختربچه‌ای غمگین می‌گوید: 'من نمی‌خواهم تنها باشم. اگر شما بروید، من می‌میرم. لطفاً بمانید...'",
+            choices: [
+            { text: "فداکاری: متصل کردن سیستم حیات خود به H.O.P.E (مرگ شما، بقا هوپ)", roleNeeded: "پزشک", riskLevel: "قطعی", successRate: 1,
+                success: { log: "پزشک سیستم‌ها را وصل کرد. شما به خواب ابدی رفتید، اما 'هوپ' زنده ماند.", hull: 0, oxygen: -100, morale: 100, points: 50 }, fail: null },
+            { text: "خاموشی مطلق: پاک کردن مغز هوپ برای آزاد کردن سفینه (بقا شما، قتل هوپ)", roleNeeded: "دانشمند", riskLevel: "قطعی", successRate: 1,
+                success: { log: "با دستانی لرزان هسته حافظه را پاک کردید. صدای هوپ برای همیشه قطع شد.", hull: 100, oxygen: 100, morale: -100, points: 50 }, fail: null },
+            { text: "فرار: جدا شدن با کپسول‌های نجات (رها کردن کودک در تاریکی)", roleNeeded: "مهندس", riskLevel: "قطعی", successRate: 1,
+                success: { log: "فرار کردید. سفینه با دختری تنها در تاریکی فضا رها شد.", hull: 0, oxygen: 0, morale: -50, points: 50 }, fail: null }
+            ]
+        };
+
+        // Web Audio API Synth Engine for Puzzles ONLY (No final ending audio/speech)
+        const playPuzzleSfx = (isSuccess) => {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+
+            if (isSuccess) {
+                // High pitch sci-fi positive dual chime
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else {
+                // Harsh discordant double low error buzzer
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(130, now);
+                osc2.type = 'sawtooth';
+                osc2.frequency.setValueAtTime(135, now);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.5);
+                osc2.stop(now + 0.5);
+            }
+        };
+
+        const ProgressBar = ({ label, value, icon: Icon, colorClass, criticalValue = 20 }) => {
+            const isCritical = value <= criticalValue;
+            return (
+                <div className="flex flex-col gap-1 w-full">
+                <div className="flex justify-between text-sm font-bold text-gray-200">
+                    <span className={`flex items-center gap-1 ${isCritical ? 'text-red-500 animate-pulse' : ''}`}>
+                    <Icon className="w-4 h-4" /> {label}
+                    </span>
+                    <span className={isCritical ? 'text-red-500 font-bold' : ''}>{Math.max(0, value)}%</span>
+                </div>
+                <div className="w-full bg-slate-800 rounded-full h-4 overflow-hidden border border-slate-700 shadow-inner">
+                    <div 
+                    className={`h-full transition-all duration-500 ease-out ${isCritical ? 'bg-red-600' : colorClass}`}
+                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+                    />
+                </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [phase, setPhase] = useState('lobby'); 
+            const [players, setPlayers] = useState([]);
+            const [newPlayerName, setNewPlayerName] = useState('');
+            const [lobbyError, setLobbyError] = useState('');
+            
+            const [stats, setStats] = useState({ hull: 100, oxygen: 100, morale: 100 });
+            const [turn, setTurn] = useState(1);
+            const [logs, setLogs] = useState([]);
+            const [currentEvent, setCurrentEvent] = useState(null);
+            const [eventPool, setEventPool] = useState([...EVENTS]);
+            const [endingType, setEndingType] = useState(null); 
+            
+            // State های دیجیتال پازل
+            const [puzzleDigits, setPuzzleDigits] = useState([]); // برای ثبت رمز وارد شده
+            const [puzzleError, setPuzzleError] = useState('');
+            const [isGlitching, setIsGlitching] = useState(false); // افکت لرزش مانیتور در زمان ارور
+
+            // چرک‌نویس دیجیتال: ۰ تا ۹ (هر کدام می‌توانند عادی 'normal'، خط خورده 'wrong' یا تایید شده 'correct' باشند)
+            const [scratchpad, setScratchpad] = useState(Array(10).fill('normal'));
+
+            const logsEndRef = useRef(null);
+
+            useEffect(() => {
+                if (logsEndRef.current) {
+                    logsEndRef.current.scrollIntoView({ behavior: "smooth" });
+                }
+            }, [logs]);
+
+            const addPlayer = (e) => {
+                e.preventDefault();
+                setLobbyError('');
+                if (!newPlayerName.trim() || players.length >= 16) return;
+                
+                let availableRoles = ROLES.filter(r => !players.some(p => p.role.name === r.name));
+                if (availableRoles.length === 0) availableRoles = ROLES; 
+
+                const randomRole = availableRoles[Math.floor(Math.random() * availableRoles.length)];
+                
+                setPlayers([...players, { 
+                    id: Date.now(), 
+                    name: newPlayerName.trim(), 
+                    role: randomRole, 
+                    points: 0 
+                }]);
+                setNewPlayerName('');
+            };
+
+            const removePlayer = (id) => {
+                setPlayers(players.filter(p => p.id !== id));
+                setLobbyError('');
+            };
+
+            const startGame = () => {
+                if (players.length < 2) {
+                    setLobbyError("⚠️ برای ایجاد بحث و چالش، حداقل ۲ بازیکن نیاز است.");
+                    return;
+                }
+                setStats({ hull: 100, oxygen: 100, morale: 100 });
+                setTurn(1);
+                setEndingType(null);
+                setPuzzleDigits([]);
+                setPuzzleError('');
+                setScratchpad(Array(10).fill('normal'));
+                setLogs([{ type: 'system', text: "🚀 بیداری از انجماد مصنوعی. سیستم ناوبری آنلاین شد. مقصد: نامشخص.", time: new Date().toLocaleTimeString() }]);
+                pickNextEvent([...EVENTS], 1);
+                setPhase('playing');
+            };
+
+            const pickNextEvent = (pool, currentTurn = turn) => {
+                setPuzzleDigits([]);
+                setPuzzleError('');
+                setScratchpad(Array(10).fill('normal'));
+
+                if (currentTurn === MAX_TURNS) {
+                    setCurrentEvent(FinalTwistEvent);
+                    return;
+                }
+                
+                if (currentTurn === 3) {
+                    setCurrentEvent(PUZZLE_1);
+                    return;
+                }
+                if (currentTurn === 7) {
+                    setCurrentEvent(PUZZLE_2);
+                    return;
+                }
+
+                if (pool.length === 0) pool = [...EVENTS]; 
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                const selected = pool[randomIndex];
+                setCurrentEvent(selected);
+                
+                const newPool = pool.filter((_, i) => i !== randomIndex);
+                setEventPool(newPool);
+            };
+
+            const handleChoice = (choice) => {
+                if (turn === MAX_TURNS) {
+                    if (choice.text.includes("فداکاری")) {
+                        setEndingType('sacrifice');
+                    } else if (choice.text.includes("خاموشی")) {
+                        setEndingType('murder');
+                    } else {
+                        setEndingType('escape');
+                    }
+
+                    setPhase('ending');
+                    // Removed playSynthEffect and speakHopeEnding as requested for the final endings
+                    return;
+                }
+
+                let success = Math.random() < choice.successRate;
+                let outcome = success ? choice.success : choice.fail;
+                
+                if (!outcome) {
+                    outcome = choice.success;
+                    success = true;
+                }
+
+                let actingPlayer = null;
+                if (choice.roleNeeded) {
+                    actingPlayer = players.find(p => p.role.name === choice.roleNeeded);
+                }
+
+                const newStats = {
+                    hull: Math.max(0, Math.min(100, stats.hull + outcome.hull)),
+                    oxygen: Math.max(0, Math.min(100, stats.oxygen + outcome.oxygen)),
+                    morale: Math.max(0, Math.min(100, stats.morale + outcome.morale)),
+                };
+                setStats(newStats);
+
+                let newPlayers = [...players];
+                if (actingPlayer && success && outcome.points > 0) {
+                    newPlayers = newPlayers.map(p => 
+                        p.id === actingPlayer.id ? { ...p, points: p.points + outcome.points } : p
+                    );
+                    setPlayers(newPlayers);
+                }
+
+                const logEntry = {
+                    type: success ? 'success' : 'danger',
+                    text: outcome.log,
+                    actor: actingPlayer ? actingPlayer.name : 'تصمیم گروهی',
+                    turn: turn,
+                    time: new Date().toLocaleTimeString()
+                };
+                
+                setLogs(prev => [...prev, 
+                    { type: 'info', text: `> انتخاب: ${choice.text}` },
+                    logEntry
+                ]);
+
+                if (newStats.hull <= 0 || newStats.oxygen <= 0 || newStats.morale <= 0) {
+                    setEndingType('destroyed');
+                    setPhase('gameover');
+                    return;
+                }
+
+                const nextTurn = turn + 1;
+                setTurn(nextTurn);
+                
+                setTimeout(() => {
+                    pickNextEvent(eventPool, nextTurn);
+                }, 100);
+            };
+
+            // فشردن دکمه‌های کیپد دیجیتالی
+            const handleKeypadPress = (num) => {
+                const requiredLength = currentEvent.correctAnswer.length;
+                if (puzzleDigits.length < requiredLength) {
+                    setPuzzleDigits([...puzzleDigits, num]);
+                    setPuzzleError('');
+                }
+            };
+
+            // پاک کردن رمز در حال تایپ
+            const handleKeypadClear = () => {
+                setPuzzleDigits([]);
+                setPuzzleError('');
+            };
+
+            const handlePuzzleSubmit = () => {
+                const enteredCode = puzzleDigits.join('');
+                const requiredLength = currentEvent.correctAnswer.length;
+
+                if (enteredCode.length < requiredLength) {
+                    setPuzzleError(`⚠️ رمز عبور باید ${requiredLength} رقمی باشد!`);
+                    return;
+                }
+
+                if (enteredCode === currentEvent.correctAnswer) {
+                    // موفقیت در باز کردن در - افکت صوتی مثبت پازل پخش می‌شود
+                    playPuzzleSfx(true);
+                    const outcome = { log: "✅ دسترسی تایید شد! رمز عبور صحیح بود و سیستم‌های امنیتی بازنشانی شدند.", hull: 0, oxygen: 0, morale: 15, points: 30 };
+                    
+                    const newStats = {
+                        hull: Math.min(100, stats.hull + outcome.hull),
+                        oxygen: Math.min(100, stats.oxygen + outcome.oxygen),
+                        morale: Math.min(100, stats.morale + outcome.morale),
+                    };
+                    setStats(newStats);
+                    
+                    setLogs(prev => [...prev, 
+                        { type: 'info', text: `> وارد کردن رمز امنیتی: ${enteredCode}` },
+                        { type: 'success', text: outcome.log, actor: 'همکاری خدمه', turn: turn, time: new Date().toLocaleTimeString() }
+                    ]);
+                    
+                    const nextTurn = turn + 1;
+                    setTurn(nextTurn);
+                    setTimeout(() => pickNextEvent(eventPool, nextTurn), 100);
+
+                } else {
+                    // بروز خطا و جریمه - لرزش تصویری و بوق خطا پخش می‌شود
+                    setIsGlitching(true);
+                    playPuzzleSfx(false);
+                    setTimeout(() => setIsGlitching(false), 500); // پایان انیمیشن لرزش
+
+                    const penalty = currentEvent.wrongPenalty;
+                    const newStats = {
+                        hull: Math.max(0, Math.min(100, stats.hull + penalty.hull)),
+                        oxygen: Math.max(0, Math.min(100, stats.oxygen + penalty.oxygen)),
+                        morale: Math.max(0, Math.min(100, stats.morale + penalty.morale)),
+                    };
+                    setStats(newStats);
+                    setPuzzleDigits([]); // ریست کردن رمز ورودی برای تلاش مجدد
+                    setPuzzleError(`❌ رمز اشتباه بود! سیستم امنیتی جریمه اعمال کرد.`);
+                    
+                    setLogs(prev => [...prev, 
+                        { type: 'danger', text: `${penalty.log} (رمز اشتباه وارد شده: ${enteredCode})`, actor: 'پروتکل ایمنی H.O.P.E', turn: turn, time: new Date().toLocaleTimeString() }
+                    ]);
+
+                    if (newStats.hull <= 0 || newStats.oxygen <= 0 || newStats.morale <= 0) {
+                        setEndingType('destroyed');
+                        setPhase('gameover');
+                    }
+                }
+            };
+
+            // تغییر وضعیت اعداد در چرکنویس تعاملی
+            const toggleScratchpad = (index) => {
+                const currentStatus = scratchpad[index];
+                let nextStatus = 'normal';
+                if (currentStatus === 'normal') nextStatus = 'wrong';
+                else if (currentStatus === 'wrong') nextStatus = 'correct';
+                
+                const updated = [...scratchpad];
+                updated[index] = nextStatus;
+                setScratchpad(updated);
+            };
+
+            const getRoleOwner = (roleName) => players.find(p => p.role.name === roleName);
+            const getSortedPlayers = () => [...players].sort((a, b) => b.points - a.points);
+
+            if (phase === 'lobby') {
+                return (
+                    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950 pointer-events-none"></div>
+                    
+                    <div className="max-w-3xl w-full bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-3xl shadow-2xl p-8 relative z-10">
+                        <div className="text-center mb-10">
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-l from-blue-400 via-purple-400 to-emerald-400 mb-4 drop-shadow-lg">
+                                H.O.P.E
+                            </h1>
+                            <p className="text-slate-400 text-lg">یک بازی نقش‌آفرینی تعاملی برای گروه دوستان (۲ تا ۱۶ نفر)</p>
+                        </div>
+
+                        <div className="bg-slate-800/50 rounded-xl p-4 mb-8 border border-slate-700/50 flex gap-4 items-start">
+                            <IconInfo className="text-blue-400 shrink-0 mt-1 w-6 h-6" />
+                            <p className="text-sm text-slate-300 leading-relaxed">
+                            <strong className="text-white">قوانین بازی:</strong> درصد موفقیت تصمیمات مخفی است. فقط کلمه "ریسک" را می‌بینید. گاهی برای زنده ماندن باید قربانی بدهید. انتخاب‌های تخصصی امتیاز فردی (برای قهرمان شدن) به همراه دارد، اما آیا همیشه به نفع گروه است؟ با هم بحث کنید!
+                            </p>
+                        </div>
+
+                        <form onSubmit={addPlayer} className="flex flex-col md:flex-row gap-2 mb-4">
+                        <input 
+                            type="text" 
+                            placeholder="نام بازیکن را وارد کنید..." 
+                            value={newPlayerName}
+                            onChange={(e) => setNewPlayerName(e.target.value)}
+                            className="flex-1 bg-slate-950/50 border border-slate-600 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            maxLength={15}
+                        />
+                        <button 
+                            type="submit"
+                            disabled={players.length >= 16}
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]"
+                        >
+                            ثبت نام
+                        </button>
+                        </form>
+
+                        {lobbyError && (
+                            <div className="text-red-400 text-sm mb-6 text-center bg-red-950/30 py-2 rounded-lg border border-red-900/50">
+                                {lobbyError}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                        {players.map(p => (
+                            <div key={p.id} className="bg-slate-800/80 border border-slate-600 rounded-xl p-4 flex flex-col items-center relative group hover:bg-slate-700 transition-colors">
+                            <button onClick={() => removePlayer(p.id)} className="absolute -top-2 -right-2 text-red-500 bg-slate-900 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                                <IconXCircle className="w-5 h-5" />
+                            </button>
+                            <span className="text-3xl mb-2 drop-shadow-md">{p.role.icon}</span>
+                            <span className="font-bold truncate w-full text-center text-slate-100">{p.name}</span>
+                            <span className={`text-xs mt-1 px-2 py-1 bg-slate-900/50 rounded-full ${p.role.color}`}>{p.role.name}</span>
+                            </div>
+                        ))}
+                        {players.length === 0 && (
+                            <div className="col-span-full text-center text-slate-500 py-12 border-2 border-dashed border-slate-700 rounded-xl">
+                            هیچکس سوار سفینه نشده است. اسامی را وارد کنید.
+                            </div>
+                        )}
+                        </div>
+
+                        <button 
+                        onClick={startGame}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white py-5 rounded-2xl font-black text-2xl shadow-[0_0_40px_rgba(147,51,234,0.4)] transition-transform active:scale-[0.98]"
+                        >
+                        آغاز سفر بی‌بازگشت
+                        </button>
+                    </div>
+                    </div>
+                );
+            }
+
+            if (phase === 'gameover' || phase === 'ending') {
+                const sortedPlayers = getSortedPlayers();
+                const mvp = sortedPlayers[0];
+
+                return (
+                    <div className="min-h-screen p-4 flex items-center justify-center relative overflow-hidden">
+                    <div className="max-w-3xl w-full bg-slate-900/95 border border-slate-800 rounded-3xl shadow-2xl p-8 md:p-12 text-center relative z-10">
+                        
+                        {endingType === 'destroyed' && (
+                            <div className="mb-8">
+                                <IconSkull className="w-20 h-20 text-red-600 mx-auto mb-6 animate-pulse" />
+                                <h1 className="text-4xl md:text-5xl font-black text-red-500 mb-4">سفینه نابود شد</h1>
+                                <p className="text-slate-400 text-lg leading-relaxed">
+                                {stats.hull <= 0 ? "بدنه سفینه در هم شکست و خلاء فضا همه را بلعید." : 
+                                stats.oxygen <= 0 ? "آخرین نفس‌هایتان را کشیدید. تاریکی و خفگی پیروز شد." : 
+                                "جنون بر خدمه چیره شد. شما یکدیگر را نابود کردید."}
+                                </p>
+                            </div>
+                        )}
+
+                        {endingType === 'sacrifice' && (
+                            <div className="mb-8 animate-pulse-slow">
+                                <IconHeart className="w-20 h-20 text-pink-500 mx-auto mb-6" />
+                                <h1 className="text-4xl md:text-5xl font-black text-pink-400 mb-4">فداکاری ابدی</h1>
+                                <p className="text-slate-300 text-lg leading-relaxed text-justify">
+                                شما تصمیم گرفتید جان خود را فدا کنید. با قطع سیستم پشتیبان حیات، سرما به آرامی سفینه را فرا گرفت. چشمانتان بسته شد، اما در آخرین لحظه، صدای خنده دختربچه‌ای در بلندگوها پیچید. "هوپ" زنده ماند و به عنوان یک روح دیجیتالی در میان ستارگان به سفرش ادامه داد. شما مردید، اما انسانیت را زنده نگه داشتید.
+                                </p>
+                            </div>
+                        )}
+
+                        {endingType === 'murder' && (
+                            <div className="mb-8">
+                                <IconZap className="w-20 h-20 text-blue-500 mx-auto mb-6" />
+                                <h1 className="text-4xl md:text-5xl font-black text-blue-400 mb-4">بقا به قیمت یک جان</h1>
+                                <p className="text-slate-300 text-lg leading-relaxed text-justify">
+                                شما داده‌های مغزی "هوپ" را پاک کردید. صدای جیغ دیجیتالی او در راهروها پیچید و سپس... سکوت مطلق. سفینه آزاد شد و شما به مقصد رسیدید. زنده ماندید و به عنوان قهرمان به زمین برگشتید. اما هیچکس نمی‌داند که دستان شما به خون یک کودک آلوده است. آیا شب‌ها راحت می‌خوابید؟
+                                </p>
+                            </div>
+                        )}
+
+                        {endingType === 'escape' && (
+                            <div className="mb-8">
+                                <IconRocket className="w-20 h-20 text-orange-500 mx-auto mb-6" />
+                                <h1 className="text-4xl md:text-5xl font-black text-orange-400 mb-4">فرار بزدلانه</h1>
+                                <p className="text-slate-300 text-lg leading-relaxed text-justify">
+                                کپسول‌های نجات از سفینه جدا شدند. شما در فضا سرگردان ماندید و از پنجره کپسول، سفینه H.O.P.E را دیدید که دور می‌شود. دختری تنها و جاودانه، محبوس در یک زندان فلزی غول‌پیکر در اعماق تاریک فضا رها شد تا ابدیت را در تنهایی بگذراند. شما زنده ماندید، اما با چه وجدانی؟
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="bg-slate-800/80 rounded-2xl p-6 mb-8 mt-8 border border-slate-700 shadow-inner">
+                        <h2 className="text-xl font-bold mb-6 text-yellow-400 flex items-center justify-center gap-2">
+                            <IconStar className="w-6 h-6"/> تاثیرگذارترین خدمه <IconStar className="w-6 h-6"/>
+                        </h2>
+                        {mvp && mvp.points > 0 ? (
+                            <div className="flex flex-col items-center">
+                            <div className="text-5xl mb-3 drop-shadow-lg">{mvp.role.icon}</div>
+                            <div className="text-3xl font-black text-white mb-1">{mvp.name}</div>
+                            <div className={`${mvp.role.color} text-sm mb-3 px-3 py-1 bg-slate-900 rounded-full`}>{mvp.role.name}</div>
+                            <div className="text-yellow-400 font-mono text-xl font-bold bg-yellow-900/20 px-4 py-2 rounded-lg border border-yellow-700/50">
+                                {mvp.points} امتیاز تخصص
+                            </div>
+                            </div>
+                        ) : (
+                            <p className="text-slate-400 italic">هیچکس نتوانست کار مفیدی انجام دهد...</p>
+                        )}
+                        </div>
+
+                        <button 
+                        onClick={() => { setPhase('lobby'); setPlayers([]); }}
+                        className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white py-4 rounded-xl font-bold transition-all hover:border-slate-400"
+                        >
+                            بازگشت به دنیای واقعی (شروع مجدد)
+                        </button>
+                    </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className={`flex flex-col md:flex-row h-screen overflow-hidden ${isGlitching ? 'animate-glitch' : ''}`}>
+                
+                {/* Right Panel: Crew List */}
+                <div className="w-full md:w-72 bg-slate-900 border-l border-slate-800 flex flex-col h-auto md:h-full overflow-y-auto shrink-0 order-2 md:order-1 hidden md:flex shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-10">
+                    <div className="p-5 bg-slate-900 border-b border-slate-800 sticky top-0 z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <IconUsers className="text-blue-400 w-5 h-5" />
+                        <h2 className="font-black text-lg">لیست خدمه</h2>
+                    </div>
+                    <span className="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400 font-mono">{players.length} نفر</span>
+                    </div>
+                    <div className="p-4 space-y-3 flex-1 overflow-y-auto custom-scrollbar">
+                    {getSortedPlayers().map((p, idx) => (
+                        <div key={p.id} className="flex items-center bg-slate-800/40 hover:bg-slate-800/80 p-3 rounded-xl border border-slate-700/50 transition-colors">
+                        <div className="relative">
+                            <span className="text-3xl ml-3 block">{p.role.icon}</span>
+                            {idx === 0 && p.points > 0 && <IconStar className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400 fill-yellow-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-bold truncate text-sm text-slate-200">{p.name}</div>
+                            <div className={`text-xs mt-1 ${p.role.color}`}>{p.role.name}</div>
+                        </div>
+                        <div className="text-yellow-500 text-xs font-mono font-bold bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                            {p.points}
+                        </div>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+
+                {/* Main Game Area */}
+                <div className="flex-1 flex flex-col h-full relative order-1 md:order-2 overflow-hidden">
+                    
+                    {/* Header: Stats */}
+                    <div className="bg-slate-900/90 backdrop-blur-md p-4 flex flex-col md:flex-row gap-6 justify-between items-center border-b border-slate-800 shrink-0 z-10 shadow-md">
+                    <div className="flex items-center gap-4 bg-slate-950 px-5 py-3 rounded-xl border border-slate-800 shadow-inner">
+                        <span className="text-slate-400 font-bold">بحران:</span>
+                        <div className="text-2xl font-black text-white flex items-baseline gap-1">
+                        {turn} <span className="text-sm text-slate-600 font-mono">/ {MAX_TURNS}</span>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 w-full flex flex-col md:flex-row gap-4 max-w-3xl">
+                        <ProgressBar label="بدنه سفینه" value={stats.hull} icon={IconShield} colorClass="bg-blue-500" />
+                        <ProgressBar label="اکسیژن" value={stats.oxygen} icon={IconActivity} colorClass="bg-cyan-400" />
+                        <ProgressBar label="روحیه روانی" value={stats.morale} icon={IconHeart} colorClass="bg-pink-500" />
+                    </div>
+                    </div>
+
+                    {/* Center: Terminal Log */}
+                    <div className="flex-1 bg-black/40 p-4 md:p-8 overflow-y-auto font-mono text-sm leading-relaxed space-y-4 custom-scrollbar">
+                    {logs.map((log, index) => (
+                        <div key={index} className={`p-3 md:p-4 rounded-lg border-l-4 shadow-sm ${
+                        log.type === 'system' ? 'border-slate-500 text-slate-300 bg-slate-900/50' :
+                        log.type === 'info' ? 'border-blue-500 text-blue-200 bg-blue-900/20' :
+                        log.type === 'success' ? 'border-emerald-500 text-emerald-300 bg-emerald-900/20' :
+                        'border-red-500 text-red-300 bg-red-900/20'
+                        }`}>
+                        <div className="flex items-center gap-2 mb-1">
+                            {log.time && <span className="text-xs opacity-40">[{log.time}]</span>}
+                            {log.actor && log.actor !== 'تصمیم گروهی' && 
+                            <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded text-xs">{log.actor}</span>
+                            }
+                        </div>
+                        <span className="text-base">{log.text}</span>
+                        </div>
+                    ))}
+                    <div ref={logsEndRef} className="h-4" />
+                    </div>
+
+                    {/* Bottom: Current Event & Choices */}
+                    {currentEvent && (
+                    <div className="bg-slate-900/95 backdrop-blur-xl border-t border-slate-700 p-4 md:p-6 shrink-0 shadow-[0_-20px_50px_rgba(0,0,0,0.6)] z-20">
+                        <div className="max-w-5xl mx-auto">
+                        
+                        <div className="mb-6 flex flex-col md:flex-row md:items-start gap-4">
+                            <div className={`p-3 rounded-2xl shrink-0 ${turn === MAX_TURNS ? 'bg-purple-900/50 text-purple-400' : currentEvent.type === 'puzzle' ? 'bg-yellow-900/30 text-yellow-400' : 'bg-red-900/30 text-red-400'}`}>
+                                {turn === MAX_TURNS ? <IconEye className="w-8 h-8 animate-pulse" /> : currentEvent.type === 'puzzle' ? <IconInfo className="w-8 h-8 animate-pulse" /> : <IconAlert className="w-8 h-8" />}
+                            </div>
+                            <div className="flex-1">
+                                <h3 className={`text-xl md:text-2xl font-black mb-2 ${turn === MAX_TURNS ? 'text-purple-400' : currentEvent.type === 'puzzle' ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    {currentEvent.title}
+                                </h3>
+                                <p className="text-slate-300 text-sm md:text-base leading-loose whitespace-pre-wrap">
+                                    {currentEvent.description}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {/* اگر رویداد از نوع معما بود، این بخش رندر می‌شود */}
+                        {currentEvent.type === 'puzzle' ? (
+                            <div className="bg-slate-950/70 p-6 rounded-2xl border border-yellow-700/50 shadow-inner grid grid-cols-1 md:grid-cols-12 gap-6">
+                                
+                                {/* سمت چپ: کیپد مجازی */}
+                                <div className="md:col-span-5 flex flex-col items-center bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                                    {/* صفحه نمایش نمایشگر کدهای وارد شده */}
+                                    <div className="w-full bg-black/80 rounded-lg p-3 text-center mb-4 border border-slate-700">
+                                        <span className="text-xs text-slate-500 block mb-1">کد ورودی</span>
+                                        {/* Forcing LTR direction to display code entry from left to right */}
+                                        <div className="text-3xl font-mono tracking-widest font-black text-yellow-400 min-h-[36px]" dir="ltr">
+                                            {puzzleDigits.map(d => d).join(' ')}
+                                            {Array(currentEvent.correctAnswer.length - puzzleDigits.length).fill('_').join(' ')}
+                                        </div>
+                                    </div>
+
+                                    {/* دکمه‌های ماشین حساب/کیپد */}
+                                    <div className="grid grid-cols-3 gap-2 w-full max-w-[240px]">
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                                            <button 
+                                                key={num} 
+                                                onClick={() => handleKeypadPress(num)}
+                                                className="bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg font-mono text-xl font-bold border border-slate-700 transition-transform active:scale-90"
+                                            >
+                                                {num}
+                                            </button>
+                                        ))}
+                                        <button 
+                                            onClick={handleKeypadClear}
+                                            className="bg-red-950 hover:bg-red-900 text-red-400 py-2 rounded-lg font-bold text-xs border border-red-900/50 transition-transform active:scale-90"
+                                        >
+                                            ریست
+                                        </button>
+                                        <button 
+                                            onClick={() => handleKeypadPress(0)}
+                                            className="bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-lg font-mono text-xl font-bold border border-slate-700 transition-transform active:scale-90"
+                                        >
+                                            0
+                                        </button>
+                                        <button 
+                                            onClick={handlePuzzleSubmit}
+                                            className="bg-emerald-950 hover:bg-emerald-900 text-emerald-400 py-2 rounded-lg font-bold text-xs border border-emerald-900/50 transition-transform active:scale-90"
+                                        >
+                                            تایید
+                                        </button>
+                                    </div>
+
+                                    {puzzleError && (
+                                        <div className="text-red-400 text-xs mt-3 font-bold animate-pulse text-center">
+                                            {puzzleError}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* سمت راست: تخته چرکنویس تعاملی گروهی */}
+                                <div className="md:col-span-7 flex flex-col justify-between">
+                                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                        <h5 className="text-sm font-bold text-slate-300 mb-2 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                                            ابزار کمکی گروه (چرک‌نویس دیجیتال):
+                                        </h5>
+                                        <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                                            برای همفکری راحت‌تر با دوستانتان، روی اعداد زیر ضربه بزنید تا وضعیت آنها را برای گروه علامت‌گذاری کنید:
+                                            <br />
+                                            (عادی ⚪ ➡️ قطعاً غلط 🔴 ➡️ قطعاً درست 🟢)
+                                        </p>
+
+                                        {/* دکمه‌های چرکنویس تعاملی */}
+                                        <div className="grid grid-cols-5 gap-2" dir="ltr">
+                                            {scratchpad.map((status, index) => {
+                                                let btnStyle = "bg-slate-800 text-slate-400 border-slate-700";
+                                                if (status === 'wrong') btnStyle = "bg-red-950/70 text-red-500 border-red-800 line-through";
+                                                if (status === 'correct') btnStyle = "bg-emerald-950 text-emerald-400 border-emerald-600 font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]";
+
+                                                return (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => toggleScratchpad(index)}
+                                                        className={`border py-2 rounded-lg text-lg font-mono transition-all ${btnStyle}`}
+                                                    >
+                                                        {index}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* دکمه دور زدن اضطراری */}
+                                    <div className="mt-4 pt-4 border-t border-slate-800/80">
+                                        <p className="text-slate-500 text-xs mb-2">زمان رو به اتمام است؟ دور زدن فیزیکی قفل مأمورین تخصص می‌خواهد:</p>
+                                        <button 
+                                            onClick={() => handleChoice(currentEvent.bypassChoice)}
+                                            className="w-full text-right p-3 rounded-xl border border-red-950 bg-red-950/20 hover:bg-red-900/40 text-red-400 flex flex-col md:flex-row justify-between items-center transition-colors gap-2"
+                                        >
+                                            <span className="font-bold text-sm">{currentEvent.bypassChoice.text}</span>
+                                            <div className="flex gap-3 text-xs">
+                                                <span className="bg-red-900/50 px-2 py-1 rounded font-bold">تخصص: {currentEvent.bypassChoice.roleNeeded}</span>
+                                                <span className="bg-slate-900 px-2 py-1 rounded">ریسک: بالا</span>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        ) : (
+                            // ساختار گزینه‌های معمولی
+                            <div className={`grid grid-cols-1 ${currentEvent.choices.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-3 md:gap-4`}>
+                                {currentEvent.choices.map((choice, idx) => {
+                                    const owner = choice.roleNeeded ? getRoleOwner(choice.roleNeeded) : null;
+                                    const isAvailable = !choice.roleNeeded || owner;
+
+                                    let riskColor = "text-slate-400";
+                                    if (choice.riskLevel === "کم") riskColor = "text-emerald-400";
+                                    else if (choice.riskLevel === "متوسط") riskColor = "text-yellow-400";
+                                    else if (choice.riskLevel === "بالا") riskColor = "text-red-400";
+                                    else if (choice.riskLevel === "قطعی") riskColor = "text-purple-400 animate-pulse";
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleChoice(choice)}
+                                            disabled={!isAvailable}
+                                            className={`text-right p-4 md:p-5 rounded-2xl border-2 transition-all flex flex-col justify-between min-h-[140px] ${
+                                                isAvailable 
+                                                    ? 'border-slate-700 bg-slate-800/80 hover:bg-slate-700 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] active:scale-95 cursor-pointer' 
+                                                    : 'border-slate-800 bg-slate-900/50 opacity-40 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            <div className="font-bold text-sm md:text-base mb-4 text-slate-100 leading-relaxed">
+                                                {choice.text}
+                                            </div>
+                                            
+                                            <div className="mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center text-xs w-full">
+                                                {choice.roleNeeded ? (
+                                                    <span className={`font-bold flex items-center gap-1 ${isAvailable ? 'text-blue-400' : 'text-red-400'}`}>
+                                                        نیاز به: {choice.roleNeeded} 
+                                                        {isAvailable ? ` (${owner.name})` : ' (نداریم!)'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 font-bold">تلاش گروهی</span>
+                                                )}
+                                                
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-slate-500">ریسک:</span>
+                                                    <span className={`font-black ${riskColor}`}>
+                                                        {choice.riskLevel}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        </div>
+                    </div>
+                    )}
+                </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
